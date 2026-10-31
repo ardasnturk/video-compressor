@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.0.2] - 2026-11-01
+
 ### Added
 - Localization: English (default), Turkish, German, French, Spanish, Japanese and Simplified Chinese.
   The app follows the system language and falls back to English.

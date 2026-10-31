@@ -13,7 +13,7 @@ struct VideoCompressorApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        Window("Video Compressor Ayarları", id: "settings") {
+        Window("Video Compressor Settings", id: "settings") {
             PreferencesView()
         }
         .windowResizability(.contentSize)
@@ -62,7 +62,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             contentRect: NSRect(x: 200, y: 200, width: 392, height: 600),
             styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: false
         )
-        window.title = "Video Compressor (Önizleme)"
+        window.title = "Video Compressor (Preview)"
         window.titlebarAppearsTransparent = true
         window.contentView = NSHostingView(rootView: MenuContentView().background(.regularMaterial))
         window.makeKeyAndOrderFront(nil)

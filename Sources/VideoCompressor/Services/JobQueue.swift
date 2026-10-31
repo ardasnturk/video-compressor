@@ -195,7 +195,7 @@ final class JobQueue {
                 job.status = .cancelled
             } else {
                 job.status = .failed(message: error.localizedDescription)
-                notify(title: "Sıkıştırma başarısız", body: "\(job.fileName): \(error.localizedDescription)")
+                notify(title: String(localized: "Compression failed"), body: "\(job.fileName): \(error.localizedDescription)")
             }
         }
     }
@@ -248,9 +248,9 @@ final class JobQueue {
         }
         var body = "\(output.lastPathComponent)"
         if let saved = job.savings, let size = job.outputSize {
-            body += " · \(Formatters.bytes(size)) (\(Formatters.percent(max(saved, 0))) daha küçük)"
+            body += " · " + String(localized: "\(Formatters.bytes(size)) (\(Formatters.percent(max(saved, 0))) smaller)")
         }
-        notify(title: "Sıkıştırma tamamlandı", body: body)
+        notify(title: String(localized: "Compression finished"), body: body)
     }
 
     // MARK: - Notifications

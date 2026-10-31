@@ -6,7 +6,7 @@ enum ProbeError: LocalizedError {
     case unreadable
 
     var errorDescription: String? {
-        "Bu dosya okunamadı. Desteklenmeyen bir format olabilir (ffmpeg kurulumu daha fazla formatı açar)."
+        String(localized: "This file couldn't be read. The format may be unsupported (installing ffmpeg opens more formats).")
     }
 }
 

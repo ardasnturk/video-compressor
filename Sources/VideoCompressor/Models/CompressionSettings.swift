@@ -13,12 +13,12 @@ enum ExportFormat: String, CaseIterable, Codable, Identifiable {
 
     var subtitle: String {
         switch self {
-        case .mp4: return "Her yerde çalışır"
-        case .mov: return "Apple / QuickTime"
-        case .m4v: return "iTunes / Apple TV"
-        case .webm: return "Web için hafif"
-        case .mkv: return "Esnek konteyner"
-        case .gif: return "Animasyonlu görsel"
+        case .mp4: return String(localized: "Plays everywhere")
+        case .mov: return String(localized: "Apple / QuickTime")
+        case .m4v: return String(localized: "iTunes / Apple TV")
+        case .webm: return String(localized: "Lightweight for the web")
+        case .mkv: return String(localized: "Flexible container")
+        case .gif: return String(localized: "Animated image")
         }
     }
 
@@ -66,10 +66,10 @@ enum VideoCodec: String, CaseIterable, Codable, Identifiable {
 
     var detail: String {
         switch self {
-        case .h264: return "En uyumlu, donanım hızlandırmalı"
-        case .hevc: return "~%40 daha küçük, donanım hızlandırmalı"
-        case .av1: return "En küçük dosya, yavaş kodlama"
-        case .vp9: return "Web standardı, iyi sıkıştırma"
+        case .h264: return String(localized: "Most compatible, hardware accelerated")
+        case .hevc: return String(localized: "Much smaller files, hardware accelerated")
+        case .av1: return String(localized: "Smallest files, slow to encode")
+        case .vp9: return String(localized: "Web standard, good compression")
         }
     }
 
@@ -95,11 +95,11 @@ enum QualityLevel: String, CaseIterable, Codable, Identifiable {
 
     var title: String {
         switch self {
-        case .smallest: return "En küçük"
-        case .small: return "Küçük"
-        case .balanced: return "Dengeli"
-        case .high: return "Yüksek"
-        case .best: return "En iyi"
+        case .smallest: return String(localized: "Smallest")
+        case .small: return String(localized: "Small")
+        case .balanced: return String(localized: "Balanced")
+        case .high: return String(localized: "High")
+        case .best: return String(localized: "Best")
         }
     }
 
@@ -141,7 +141,7 @@ enum ResolutionLimit: Int, CaseIterable, Codable, Identifiable {
 
     var title: String {
         switch self {
-        case .original: return "Orijinal"
+        case .original: return String(localized: "Original")
         case .p2160: return "4K (2160p)"
         default: return "\(rawValue)p"
         }
@@ -149,7 +149,7 @@ enum ResolutionLimit: Int, CaseIterable, Codable, Identifiable {
 
     var shortTitle: String {
         switch self {
-        case .original: return "Orijinal"
+        case .original: return String(localized: "Original")
         case .p2160: return "4K"
         default: return "\(rawValue)p"
         }
@@ -166,7 +166,7 @@ enum FrameRateLimit: Int, CaseIterable, Codable, Identifiable {
 
     var id: Int { rawValue }
 
-    var title: String { self == .original ? "Orijinal" : "\(rawValue) fps" }
+    var title: String { self == .original ? String(localized: "Original") : "\(rawValue) fps" }
 }
 
 // MARK: - Size mode
@@ -179,8 +179,8 @@ enum SizeMode: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .quality: return "Kalite"
-        case .targetSize: return "Hedef boyut"
+        case .quality: return String(localized: "Quality")
+        case .targetSize: return String(localized: "Target size")
         }
     }
 }
@@ -227,7 +227,7 @@ struct CompressionSettings: Codable, Equatable {
         case .targetSize: parts.append("≤ \(Formatters.megabytes(targetSizeMB))")
         }
         if resolution != .original { parts.append(resolution.shortTitle) }
-        if removeAudio { parts.append("Sessiz") }
+        if removeAudio { parts.append(String(localized: "Muted")) }
         return parts.joined(separator: " · ")
     }
 }
@@ -252,7 +252,7 @@ struct CompressionPreset: Identifiable {
                                           targetSizeMB: 16, resolution: .p720)
         ),
         CompressionPreset(
-            id: "mail", title: "E-posta", icon: "envelope.fill",
+            id: "mail", title: String(localized: "E-mail"), icon: "envelope.fill",
             settings: CompressionSettings(format: .mp4, codec: .h264, sizeMode: .targetSize,
                                           targetSizeMB: 24, resolution: .p1080)
         ),
@@ -262,7 +262,7 @@ struct CompressionPreset: Identifiable {
                                           resolution: .p1080)
         ),
         CompressionPreset(
-            id: "archive", title: "Arşiv", icon: "archivebox.fill",
+            id: "archive", title: String(localized: "Archive"), icon: "archivebox.fill",
             settings: CompressionSettings(format: .mp4, codec: .hevc, quality: .high)
         ),
         CompressionPreset(

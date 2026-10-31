@@ -6,9 +6,9 @@ struct PreferencesView: View {
 
     var body: some View {
         TabView {
-            general.tabItem { Label("Genel", systemImage: "gearshape") }
-            output.tabItem { Label("Çıktı", systemImage: "folder") }
-            engine.tabItem { Label("Motor", systemImage: "cpu") }
+            general.tabItem { Label("General", systemImage: "gearshape") }
+            output.tabItem { Label("Output", systemImage: "folder") }
+            engine.tabItem { Label("Engine", systemImage: "cpu") }
         }
         .frame(width: 460)
         .padding(.vertical, 6)
@@ -17,22 +17,22 @@ struct PreferencesView: View {
     private var general: some View {
         Form {
             Section {
-                Toggle("Girişte otomatik aç", isOn: Binding(
+                Toggle("Open at login", isOn: Binding(
                     get: { _ = settings.launchAtLoginRevision; return settings.launchAtLogin },
                     set: { settings.launchAtLogin = $0 }
                 ))
-                Toggle("Menü çubuğunda ilerlemeyi göster", isOn: $settings.showProgressInMenuBar)
+                Toggle("Show progress in the menu bar", isOn: $settings.showProgressInMenuBar)
             }
-            Section("İş akışı") {
-                Toggle("Video eklenince hemen sıkıştır", isOn: $settings.autoStart)
-                Picker("Aynı anda işlenecek video", selection: $settings.maxConcurrentJobs) {
-                    ForEach(1...4, id: \.self) { Text("\($0)").tag($0) }
+            Section("Workflow") {
+                Toggle("Start compressing as soon as a video is added", isOn: $settings.autoStart)
+                Picker("Videos processed at once", selection: $settings.maxConcurrentJobs) {
+                    ForEach(1...4, id: \.self) { Text(verbatim: "\($0)").tag($0) }
                 }
             }
-            Section("Bittiğinde") {
-                Toggle("Bildirim göster", isOn: $settings.notifyWhenDone)
-                Toggle("Ses çal", isOn: $settings.playSound)
-                Toggle("Dosyayı Finder'da göster", isOn: $settings.revealWhenDone)
+            Section("When Finished") {
+                Toggle("Show a notification", isOn: $settings.notifyWhenDone)
+                Toggle("Play a sound", isOn: $settings.playSound)
+                Toggle("Reveal the file in Finder", isOn: $settings.revealWhenDone)
             }
             updates
         }
@@ -40,24 +40,24 @@ struct PreferencesView: View {
     }
 
     private var updates: some View {
-        Section("Güncellemeler") {
-            LabeledContent("Sürüm", value: UpdateController.currentVersion)
+        Section("Updates") {
+            LabeledContent("Version", value: UpdateController.currentVersion)
             if updater.isAvailable {
-                Toggle("Güncellemeleri otomatik kontrol et", isOn: Binding(
+                Toggle("Automatically check for updates", isOn: Binding(
                     get: { _ = updater.revision; return updater.automaticallyChecks },
                     set: { updater.automaticallyChecks = $0 }
                 ))
                 HStack {
                     if let last = updater.lastCheck {
-                        Text("Son kontrol: \(last.formatted(date: .abbreviated, time: .shortened))")
+                        Text("Last checked: \(last.formatted(date: .abbreviated, time: .shortened))")
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Button("Şimdi kontrol et") { updater.checkForUpdates() }
+                    Button("Check Now") { updater.checkForUpdates() }
                         .disabled(!updater.canCheckForUpdates)
                 }
             } else {
-                Text("Güncelleme kontrolü yalnızca paketlenmiş uygulamada çalışır.")
+                Text("Update checks only work in the packaged app.")
                     .foregroundStyle(.secondary)
             }
         }
@@ -65,30 +65,35 @@ struct PreferencesView: View {
 
     private var output: some View {
         Form {
-            Section("Kaydetme yeri") {
-                Picker("Klasör", selection: $settings.outputLocation) {
+            Section("Save Location") {
+                Picker("Folder", selection: $settings.outputLocation) {
                     ForEach(OutputLocation.allCases) { Text($0.title).tag($0) }
                 }
                 if settings.outputLocation == .custom {
                     HStack {
-                        Text(settings.customOutputPath.isEmpty ? "Seçilmedi"
-                             : (settings.customOutputPath as NSString).abbreviatingWithTildeInPath)
+                        Group {
+                            if settings.customOutputPath.isEmpty {
+                                Text("Not selected")
+                            } else {
+                                Text(verbatim: (settings.customOutputPath as NSString).abbreviatingWithTildeInPath)
+                            }
+                        }
                             .foregroundStyle(.secondary)
                             .lineLimit(1).truncationMode(.middle)
                         Spacer()
-                        Button("Seç…", action: chooseFolder)
+                        Button("Choose…", action: chooseFolder)
                     }
                 }
             }
             Section {
-                TextField("Dosya adı eki", text: $settings.fileSuffix)
-                LabeledContent("Örnek") {
-                    Text("tatil\(settings.fileSuffix).\(settings.compression.format.fileExtension)")
+                TextField("File name suffix", text: $settings.fileSuffix)
+                LabeledContent("Example") {
+                    Text("holiday\(settings.fileSuffix).\(settings.compression.format.fileExtension)")
                         .foregroundStyle(.secondary)
                         .font(.system(.body, design: .monospaced))
                 }
             } footer: {
-                Text("Aynı isimde dosya varsa sonuna numara eklenir; orijinal dosyanın üzerine asla yazılmaz.")
+                Text("If a file with the same name exists, a number is appended. The original is never overwritten.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
@@ -97,29 +102,29 @@ struct PreferencesView: View {
 
     private var engine: some View {
         Form {
-            Section("Yerleşik motor (AVFoundation)") {
-                LabeledContent("Formatlar", value: "MP4, MOV, M4V")
-                LabeledContent("Codec'ler", value: "H.264, HEVC")
-                LabeledContent("Hızlandırma", value: "Apple Silicon / VideoToolbox")
+            Section("Built-in Engine (AVFoundation)") {
+                LabeledContent("Formats", value: "MP4, MOV, M4V")
+                LabeledContent("Codecs", value: "H.264, HEVC")
+                LabeledContent("Acceleration", value: "Apple Silicon / VideoToolbox")
             }
             Section {
                 if let url = FFmpegLocator.ffmpegURL {
-                    LabeledContent("Durum") {
-                        Label("Bulundu", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                    LabeledContent("Status") {
+                        Label("Found", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
                     }
-                    LabeledContent("Konum", value: url.path)
-                    LabeledContent("Ek formatlar", value: "WebM, MKV, GIF · VP9, AV1")
+                    LabeledContent("Location", value: url.path)
+                    LabeledContent("Extra formats", value: "WebM, MKV, GIF · VP9, AV1")
                 } else {
-                    LabeledContent("Durum") {
-                        Label("Bulunamadı", systemImage: "xmark.circle.fill").foregroundStyle(.orange)
+                    LabeledContent("Status") {
+                        Label("Not found", systemImage: "xmark.circle.fill").foregroundStyle(.orange)
                     }
                     FFmpegHint()
                 }
-                TextField("Özel ffmpeg klasörü", text: $settings.ffmpegDirectory, prompt: Text("/opt/homebrew/bin"))
+                TextField("Custom ffmpeg folder", text: $settings.ffmpegDirectory, prompt: Text(verbatim: "/opt/homebrew/bin"))
             } header: {
-                Text("ffmpeg")
+                Text(verbatim: "ffmpeg")
             } footer: {
-                Text("ffmpeg; WebM, MKV, GIF ve AV1/VP9 çıktıları ile AVFoundation'ın açamadığı kaynak dosyalar için kullanılır. Değişiklik yeniden başlatınca geçerli olur.")
+                Text("ffmpeg is used for WebM, MKV, GIF and AV1/VP9 output, and for source files AVFoundation can't open. Changes take effect after a restart.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }

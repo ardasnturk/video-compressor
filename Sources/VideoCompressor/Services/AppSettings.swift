@@ -12,10 +12,10 @@ enum OutputLocation: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .sameAsSource: return "Kaynakla aynı klasör"
-        case .downloads: return "İndirilenler"
-        case .movies: return "Filmler"
-        case .custom: return "Özel klasör…"
+        case .sameAsSource: return String(localized: "Same folder as source")
+        case .downloads: return String(localized: "Downloads")
+        case .movies: return String(localized: "Movies")
+        case .custom: return String(localized: "Custom folder…")
         }
     }
 }

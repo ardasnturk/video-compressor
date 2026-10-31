@@ -56,9 +56,11 @@ struct DropZoneView: View {
             .onAppear {
                 withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) { pulse = true }
             }
-            Text(isTargeted ? "Bırak ve sıkıştır" : "Videoları buraya sürükle")
-                .font(.system(size: 13, weight: .semibold))
-            Text("veya dosya seçmek için tıkla · MP4, MOV, MKV, WebM, AVI…")
+            Group {
+                if isTargeted { Text("Drop to compress") } else { Text("Drag videos here") }
+            }
+            .font(.system(size: 13, weight: .semibold))
+            Text("or click to choose files · MP4, MOV, MKV, WebM, AVI…")
                 .font(.system(size: 10.5))
                 .foregroundStyle(.secondary)
         }
@@ -70,10 +72,12 @@ struct DropZoneView: View {
             Image(systemName: isTargeted ? "arrow.down.circle.fill" : "plus.circle.fill")
                 .font(.system(size: 15))
                 .foregroundStyle(Theme.accent)
-            Text(isTargeted ? "Bırak ve sıkıştır" : "Video ekle veya sürükle")
-                .font(.system(size: 12, weight: .medium))
+            Group {
+                if isTargeted { Text("Drop to compress") } else { Text("Add or drag videos") }
+            }
+            .font(.system(size: 12, weight: .medium))
             Spacer()
-            Text("⌘O").font(.system(size: 10, weight: .medium)).foregroundStyle(.tertiary)
+            Text(verbatim: "⌘O").font(.system(size: 10, weight: .medium)).foregroundStyle(.tertiary)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 9)
@@ -82,8 +86,8 @@ struct DropZoneView: View {
     private func openPanel() {
         NSApp.activate(ignoringOtherApps: true)
         let panel = NSOpenPanel()
-        panel.title = "Sıkıştırılacak videoları seç"
-        panel.prompt = "Ekle"
+        panel.title = String(localized: "Choose videos to compress")
+        panel.prompt = String(localized: "Add")
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = true
         panel.canChooseFiles = true

@@ -192,7 +192,7 @@ private final class AVEncodeSession: @unchecked Sendable {
         }
         guard started else {
             writer.cancelWriting()
-            throw reader.error ?? EncodingError.failed("Kaynak okunamadı.")
+            throw reader.error ?? EncodingError.failed(String(localized: "The source couldn't be read."))
         }
         writer.startSession(atSourceTime: .zero)
 
@@ -212,17 +212,17 @@ private final class AVEncodeSession: @unchecked Sendable {
         if reader.status == .failed {
             writer.cancelWriting()
             try? FileManager.default.removeItem(at: output)
-            throw reader.error ?? EncodingError.failed("Okuma başarısız oldu.")
+            throw reader.error ?? EncodingError.failed(String(localized: "Reading failed."))
         }
         if writer.status == .failed {
             try? FileManager.default.removeItem(at: output)
-            throw writer.error ?? EncodingError.failed("Yazma başarısız oldu.")
+            throw writer.error ?? EncodingError.failed(String(localized: "Writing failed."))
         }
 
         await writer.finishWriting()
         if writer.status != .completed {
             try? FileManager.default.removeItem(at: output)
-            throw writer.error ?? EncodingError.failed("Dosya tamamlanamadı.")
+            throw writer.error ?? EncodingError.failed(String(localized: "The file couldn't be finished."))
         }
         progress(1)
     }

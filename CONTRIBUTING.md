@@ -27,8 +27,25 @@ open --env VC_DEBUG_WINDOW=1 --env VC_DEBUG_FILES=/path/to/video.mov "build/Vide
 - Match the existing style (SwiftUI + `@Observable`, small views, comments only where the *why* isn't obvious).
 - Run `swift test` before opening the PR. Add a test to `Tests/VideoCompressorTests` when you
   change encoding behaviour.
-- User-facing strings are currently Turkish. Localization contributions are very welcome.
+- Write user-facing strings in English inside `Text("…")`, `Button("…")` or `String(localized: "…")`, then run
+  `./scripts/update-strings.sh` and add the translations (see below).
 - Add a line to the `Unreleased` section of `CHANGELOG.md`.
+
+## Adding or improving a language
+
+All UI text is in [`Resources/Localizable.xcstrings`](Resources/Localizable.xcstrings), a String Catalog with English
+as the source language. It is compiled into `<lang>.lproj` folders when the app is bundled.
+
+1. Open `Resources/Localizable.xcstrings` in Xcode (or edit the JSON) and add your language.
+   Translate every string and keep format specifiers such as `%@` and `%lld`. For several arguments, use
+   positional ones (`%1$@`, `%2$@`) when the word order changes.
+2. Add the language code to `LocalizationTests.languages` in `Tests/VideoCompressorTests/LocalizationTests.swift`.
+3. Run `swift test`. The localization test fails on any missing translation or mismatched specifier.
+4. Check the UI with your language. Labels are short on purpose, because the popover is only 392 pt wide:
+   ```bash
+   ./scripts/build-app.sh
+   open -n --env VC_DEBUG_WINDOW=1 "build/Video Compressor.app" --args -AppleLanguages "(de)"
+   ```
 
 ## Releasing (maintainers)
 

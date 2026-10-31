@@ -31,13 +31,14 @@ struct Card<Content: View>: View {
 
 /// Small uppercase caption above a control.
 struct FieldLabel: View {
-    let title: String
+    let title: LocalizedStringKey
     var icon: String?
 
     var body: some View {
         HStack(spacing: 4) {
             if let icon { Image(systemName: icon).font(.system(size: 9, weight: .bold)) }
-            Text(title.uppercased(with: Locale(identifier: "tr_TR")))
+            Text(title)
+                .textCase(.uppercase)
                 .font(.system(size: 9.5, weight: .semibold))
                 .tracking(0.6)
         }
@@ -99,7 +100,7 @@ struct Chip: View {
 
 /// Compact menu-style picker that shows the current value.
 struct MenuPicker<Value: Hashable & Identifiable>: View {
-    let label: String
+    let label: LocalizedStringKey
     let icon: String
     let options: [Value]
     @Binding var selection: Value
@@ -115,7 +116,7 @@ struct MenuPicker<Value: Hashable & Identifiable>: View {
                         selection = option
                     } label: {
                         if let detail {
-                            Text(title(option)) + Text("  ") + Text(detail(option)).foregroundColor(.secondary)
+                            Text(title(option)) + Text(verbatim: "  ") + Text(detail(option)).foregroundColor(.secondary)
                         } else {
                             Text(title(option))
                         }
@@ -162,7 +163,7 @@ struct ProgressBar: View {
 /// Icon-only button with a hover highlight.
 struct IconButton: View {
     let systemName: String
-    var help: String
+    var help: LocalizedStringKey
     var tint: Color = .secondary
     let action: () -> Void
 

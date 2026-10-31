@@ -47,27 +47,27 @@ struct MenuContentView: View {
             .shadow(color: .purple.opacity(0.35), radius: 6, y: 2)
 
             VStack(alignment: .leading, spacing: 1) {
-                Text("Video Compressor").font(.system(size: 13.5, weight: .bold))
+                Text(verbatim: "Video Compressor").font(.system(size: 13.5, weight: .bold))
                 Text(headerSubtitle)
                     .font(.system(size: 10.5))
                     .foregroundStyle(.secondary)
                     .contentTransition(.numericText())
             }
             Spacer()
-            IconButton(systemName: "gearshape.fill", help: "Ayarlar (⌘,)") { openSettings() }
+            IconButton(systemName: "gearshape.fill", help: "Settings (⌘,)") { openSettings() }
             Menu {
-                Button("Ayarlar…") { openSettings() }
-                Button("Çıktı klasörünü aç") { openOutputFolder() }
+                Button("Settings…") { openSettings() }
+                Button("Open Output Folder") { openOutputFolder() }
                 if UpdateController.shared.isAvailable {
-                    Button("Güncellemeleri kontrol et…") { UpdateController.shared.checkForUpdates() }
+                    Button("Check for Updates…") { UpdateController.shared.checkForUpdates() }
                         .disabled(!UpdateController.shared.canCheckForUpdates)
                 }
                 Divider()
-                Button("Tümünü iptal et") { queue.cancelAll() }.disabled(!queue.isBusy)
-                Button("Bitenleri temizle") { queue.clearFinished() }.disabled(!queue.hasFinishedJobs)
+                Button("Cancel All") { queue.cancelAll() }.disabled(!queue.isBusy)
+                Button("Clear Finished") { queue.clearFinished() }.disabled(!queue.hasFinishedJobs)
                 Divider()
-                Text("Sürüm \(UpdateController.currentVersion)")
-                Button("Video Compressor'dan çık") { NSApp.terminate(nil) }
+                Text("Version \(UpdateController.currentVersion)")
+                Button("Quit Video Compressor") { NSApp.terminate(nil) }
             } label: {
                 Image(systemName: "ellipsis.circle.fill")
                     .font(.system(size: 13))
@@ -85,12 +85,12 @@ struct MenuContentView: View {
         if !queue.runningJobs.isEmpty {
             let count = queue.runningJobs.count
             let p = queue.overallProgress.map(Formatters.percent) ?? ""
-            return "\(count) video sıkıştırılıyor · \(p)"
+            return String(localized: "Compressing \(count) videos") + " · " + p
         }
         if queue.totalSaved > 0 {
-            return "Bu oturumda \(Formatters.bytes(queue.totalSaved)) tasarruf"
+            return String(localized: "\(Formatters.bytes(queue.totalSaved)) saved this session")
         }
-        return "Sürükle, bırak, küçült."
+        return String(localized: "Drag, drop, shrink.")
     }
 
     // MARK: Jobs
@@ -98,10 +98,10 @@ struct MenuContentView: View {
     private var jobList: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                FieldLabel(title: "Kuyruk · \(queue.jobs.count)", icon: "list.bullet")
+                FieldLabel(title: "Queue · \(queue.jobs.count)", icon: "list.bullet")
                 Spacer()
                 if queue.hasFinishedJobs {
-                    Button("Temizle") { withAnimation(.snappy) { queue.clearFinished() } }
+                    Button("Clear") { withAnimation(.snappy) { queue.clearFinished() } }
                         .buttonStyle(.plain)
                         .font(.system(size: 10.5, weight: .medium))
                         .foregroundStyle(.secondary)
@@ -122,12 +122,12 @@ struct MenuContentView: View {
     private var footer: some View {
         HStack(spacing: 8) {
             Menu {
-                Picker("Kaydetme yeri", selection: $settings.outputLocation) {
+                Picker("Save to", selection: $settings.outputLocation) {
                     ForEach(OutputLocation.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.inline)
                 Divider()
-                Button("Özel klasör seç…") { chooseCustomFolder() }
+                Button("Choose Custom Folder…") { chooseCustomFolder() }
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "folder.fill").font(.system(size: 10))
@@ -149,7 +149,7 @@ struct MenuContentView: View {
             Spacer()
 
             Toggle(isOn: $settings.autoStart) {
-                Text("Otomatik başlat").font(.system(size: 10.5))
+                Text("Auto-start").font(.system(size: 10.5))
             }
             .toggleStyle(.checkbox)
             .controlSize(.small)
@@ -158,7 +158,7 @@ struct MenuContentView: View {
                 Button {
                     queue.startAll()
                 } label: {
-                    Label("Sıkıştır (\(queue.readyCount))", systemImage: "bolt.fill")
+                    Label("Compress (\(queue.readyCount))", systemImage: "bolt.fill")
                 }
                 .buttonStyle(GradientButtonStyle())
                 .keyboardShortcut(.return, modifiers: .command)
@@ -171,9 +171,9 @@ struct MenuContentView: View {
     /// Invisible buttons that give the popover keyboard shortcuts.
     private var hiddenShortcuts: some View {
         ZStack {
-            Button("") { openFiles() }.keyboardShortcut("o", modifiers: .command)
-            Button("") { openSettings() }.keyboardShortcut(",", modifiers: .command)
-            Button("") { NSApp.terminate(nil) }.keyboardShortcut("q", modifiers: .command)
+            Button(String()) { openFiles() }.keyboardShortcut("o", modifiers: .command)
+            Button(String()) { openSettings() }.keyboardShortcut(",", modifiers: .command)
+            Button(String()) { NSApp.terminate(nil) }.keyboardShortcut("q", modifiers: .command)
         }
         .opacity(0)
         .allowsHitTesting(false)
@@ -213,7 +213,7 @@ struct MenuContentView: View {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
-        panel.prompt = "Seç"
+        panel.prompt = String(localized: "Choose")
         if panel.runModal() == .OK, let url = panel.url {
             settings.customOutputPath = url.path
             settings.outputLocation = .custom

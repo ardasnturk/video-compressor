@@ -166,7 +166,7 @@ private final class FFmpegRunner: @unchecked Sendable {
             let message = tail
                 .split(separator: "\n")
                 .last(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty })
-                .map(String.init) ?? "ffmpeg \(status) koduyla çıktı."
+                .map(String.init) ?? String(localized: "ffmpeg exited with code \(status).")
             throw EncodingError.failed(message)
         }
         progress(1)

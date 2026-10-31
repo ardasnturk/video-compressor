@@ -29,8 +29,7 @@
 - **Fine control:** resolution limit (4K…360p, never upscales), frame-rate limit, remove audio.
 - **Queue:** estimated output size, ETA, savings, cancel and retry, and parallel jobs. Drag a finished file straight into Slack, Mail or Finder.
 - **Automatic updates** via [Sparkle](https://sparkle-project.org). Builds are signed with Developer ID and notarized.
-
-> The interface is currently in **Turkish**. Translations are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
+- **7 languages:** English, Türkçe, Deutsch, Français, Español, 日本語 and 简体中文. The app follows your Mac's language and falls back to English.
 
 ## Install
 
@@ -50,6 +49,12 @@ brew install ffmpeg
 ```
 
 Video Compressor finds ffmpeg in `/opt/homebrew/bin`, `/usr/local/bin` and `/opt/local/bin`. You can also set a custom folder in Preferences.
+
+## Languages
+
+The app picks its language from **System Settings → General → Language & Region**. To run only Video Compressor in another language, add it under *Applications* in the same pane.
+
+Strings live in a single String Catalog, [`Resources/Localizable.xcstrings`](Resources/Localizable.xcstrings). Adding a language takes about 130 short strings. See [CONTRIBUTING.md](CONTRIBUTING.md#adding-or-improving-a-language).
 
 ## How it works
 

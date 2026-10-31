@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Localization: English (default), Turkish, German, French, Spanish, Japanese and Simplified Chinese.
+  The app follows the system language and falls back to English.
+- `scripts/update-strings.sh` to extract strings into the String Catalog, and a test that checks
+  every language is complete.
+
 ## [0.0.1] - 2026-11-01
 
 First public release.

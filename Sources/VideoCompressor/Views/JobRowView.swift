@@ -82,7 +82,7 @@ struct JobRowView: View {
     @ViewBuilder
     private var trailingBadge: some View {
         if let savings = job.savings {
-            Text(savings >= 0 ? "−\(Formatters.percent(savings))" : "+\(Formatters.percent(-savings))")
+            Text(verbatim: savings >= 0 ? "−\(Formatters.percent(savings))" : "+\(Formatters.percent(-savings))")
                 .font(.system(size: 10, weight: .bold, design: .rounded))
                 .padding(.horizontal, 6).padding(.vertical, 2)
                 .background(Capsule().fill((savings >= 0 ? Theme.success : Color.orange).opacity(0.18)))
@@ -101,24 +101,26 @@ struct JobRowView: View {
         case .analyzing:
             HStack(spacing: 5) {
                 ProgressView().controlSize(.mini)
-                Text("Analiz ediliyor…").font(.system(size: 10.5)).foregroundStyle(.secondary)
+                Text("Analyzing…").font(.system(size: 10.5)).foregroundStyle(.secondary)
             }
         case .ready:
             HStack(spacing: 4) {
                 sizeText(job.info?.fileSize)
                 if let estimate = job.plan?.estimatedBytes {
                     Image(systemName: "arrow.right").font(.system(size: 8, weight: .bold)).foregroundStyle(.tertiary)
-                    Text("~\(Formatters.bytes(estimate))").font(.system(size: 10.5)).foregroundStyle(.secondary)
+                    Text(verbatim: "~" + Formatters.bytes(estimate)).font(.system(size: 10.5)).foregroundStyle(.secondary)
                 }
-                Text("· \(job.settings.summary)")
+                Text(verbatim: "· " + job.settings.summary)
                     .font(.system(size: 10.5)).foregroundStyle(.tertiary).lineLimit(1)
             }
         case .running(let p):
             VStack(alignment: .leading, spacing: 3) {
                 ProgressBar(value: p)
                 HStack(spacing: 4) {
-                    Text(job.pass > 1 ? "Hedef boyut için 2. geçiş" : job.settings.summary)
-                        .lineLimit(1)
+                    Group {
+                        if job.pass > 1 { Text("Second pass to hit the target size") } else { Text(job.settings.summary) }
+                    }
+                    .lineLimit(1)
                     Spacer()
                     if let eta = job.eta { Text(Formatters.eta(eta)).monospacedDigit() }
                 }
@@ -130,10 +132,10 @@ struct JobRowView: View {
                 sizeText(job.info?.fileSize).strikethrough(color: .secondary.opacity(0.6))
                 Image(systemName: "arrow.right").font(.system(size: 8, weight: .bold)).foregroundStyle(.tertiary)
                 Text(Formatters.bytes(size)).font(.system(size: 10.5, weight: .semibold))
-                Text("· \(url.pathExtension.uppercased())")
+                Text(verbatim: "· " + url.pathExtension.uppercased())
                     .font(.system(size: 10.5)).foregroundStyle(.tertiary)
                 if let start = job.startedAt, let end = job.finishedAt {
-                    Text("· \(String(format: "%.1f", end.timeIntervalSince(start))) sn")
+                    Text(verbatim: "· " + Formatters.elapsed(end.timeIntervalSince(start)))
                         .font(.system(size: 10.5)).foregroundStyle(.tertiary)
                 }
             }
@@ -144,7 +146,7 @@ struct JobRowView: View {
                 .lineLimit(2)
                 .help(message)
         case .cancelled:
-            Text("İptal edildi").font(.system(size: 10.5)).foregroundStyle(.secondary)
+            Text("Cancelled").font(.system(size: 10.5)).foregroundStyle(.secondary)
         }
     }
 
@@ -160,21 +162,21 @@ struct JobRowView: View {
             switch job.status {
             case .ready:
                 if job.task == nil {
-                    IconButton(systemName: "play.fill", help: "Başlat", tint: .accentColor) { queue.start(job) }
+                    IconButton(systemName: "play.fill", help: "Start", tint: .accentColor) { queue.start(job) }
                 } else {
-                    IconButton(systemName: "xmark", help: "İptal") { queue.cancel(job) }
+                    IconButton(systemName: "xmark", help: "Cancel") { queue.cancel(job) }
                 }
             case .analyzing, .running:
-                IconButton(systemName: "xmark", help: "İptal") { queue.cancel(job) }
+                IconButton(systemName: "xmark", help: "Cancel") { queue.cancel(job) }
             case .finished(let url, _):
-                IconButton(systemName: "magnifyingglass", help: "Finder'da göster") {
+                IconButton(systemName: "magnifyingglass", help: "Show in Finder") {
                     NSWorkspace.shared.activateFileViewerSelecting([url])
                 }
             case .failed, .cancelled:
-                IconButton(systemName: "arrow.clockwise", help: "Yeniden dene") { queue.retry(job) }
+                IconButton(systemName: "arrow.clockwise", help: "Retry") { queue.retry(job) }
             }
             if !job.status.isActive {
-                IconButton(systemName: "minus.circle", help: "Listeden kaldır") {
+                IconButton(systemName: "minus.circle", help: "Remove from list") {
                     withAnimation(.snappy) { queue.remove(job) }
                 }
                 .opacity(hovering ? 1 : 0)
@@ -185,26 +187,26 @@ struct JobRowView: View {
     @ViewBuilder
     private var contextMenu: some View {
         if let url = job.outputURL {
-            Button("Aç") { NSWorkspace.shared.open(url) }
-            Button("Finder'da Göster") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
-            Button("Dosyayı Kopyala") {
+            Button("Open") { NSWorkspace.shared.open(url) }
+            Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+            Button("Copy File") {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.writeObjects([url as NSURL])
             }
             Divider()
         }
-        Button("Orijinali Finder'da Göster") {
+        Button("Show Original in Finder") {
             NSWorkspace.shared.activateFileViewerSelecting([job.sourceURL])
         }
         if let info = job.info {
             Divider()
-            Text("\(info.resolutionText) · \(String(format: "%.0f", info.frameRate)) fps · \((info.codecName ?? "?").uppercased())")
-            Text("Bit hızı: \(Formatters.bitrate(info.videoBitrate))")
+            Text(verbatim: "\(info.resolutionText) · \(String(format: "%.0f", info.frameRate)) fps · \((info.codecName ?? "?").uppercased())")
+            Text("Bitrate: \(Formatters.bitrate(info.videoBitrate))")
         }
         if !job.status.isActive {
             Divider()
-            Button("Yeni ayarlarla tekrar sıkıştır") { queue.retry(job) }
-            Button("Listeden Kaldır", role: .destructive) { queue.remove(job) }
+            Button("Compress Again with Current Settings") { queue.retry(job) }
+            Button("Remove from List", role: .destructive) { queue.remove(job) }
         }
     }
 }

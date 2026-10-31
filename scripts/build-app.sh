@@ -37,6 +37,12 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Framewor
 cp "$BIN_DIR/VideoCompressor" "$APP/Contents/MacOS/VideoCompressor"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 ditto "$BIN_DIR/Sparkle.framework" "$APP/Contents/Frameworks/Sparkle.framework"
+# Compile the String Catalog into <lang>.lproj/Localizable.strings(dict).
+xcrun xcstringstool compile Resources/Localizable.xcstrings --output-directory "$APP/Contents/Resources"
+LOCALIZATIONS=""
+for dir in "$APP/Contents/Resources/"*.lproj; do
+    LOCALIZATIONS+="        <string>$(basename "$dir" .lproj)</string>"$'\n'
+done
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -56,7 +62,11 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>LSApplicationCategoryType</key><string>public.app-category.video</string>
     <key>NSHighResolutionCapable</key><true/>
     <key>NSHumanReadableCopyright</key><string>© 2026 Arda Sentürk. MIT License.</string>
-    <key>CFBundleDevelopmentRegion</key><string>tr</string>
+    <key>CFBundleDevelopmentRegion</key><string>en</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+$LOCALIZATIONS
+    </array>
     <key>SUFeedURL</key><string>$FEED_URL</string>
     <key>SUPublicEDKey</key><string>$SPARKLE_PUBLIC_KEY</string>
     <key>SUEnableAutomaticChecks</key><true/>

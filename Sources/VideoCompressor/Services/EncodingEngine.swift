@@ -11,12 +11,12 @@ enum EncodingError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .noVideoTrack: return "Dosyada video izi bulunamadı."
-        case .cannotCreateWriter: return "Çıktı dosyası oluşturulamadı."
+        case .noVideoTrack: return String(localized: "The file has no video track.")
+        case .cannotCreateWriter: return String(localized: "The output file couldn't be created.")
         case .ffmpegMissing:
-            return "Bu format için ffmpeg gerekli. Terminal'de: brew install ffmpeg"
+            return String(localized: "This format needs ffmpeg. In Terminal: brew install ffmpeg")
         case .unsupportedCodec(let name):
-            return "Kurulu ffmpeg \(name) kodlayıcısını desteklemiyor."
+            return String(localized: "The installed ffmpeg doesn't support the \(name) encoder.")
         case .failed(let message): return message
         }
     }

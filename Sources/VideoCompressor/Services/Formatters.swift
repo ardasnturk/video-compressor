@@ -23,15 +23,23 @@ enum Formatters {
     }
 
     static func eta(_ seconds: TimeInterval) -> String {
-        if seconds < 60 { return "\(max(1, Int(seconds))) sn kaldı" }
-        return "\(Int(seconds / 60)) dk \(Int(seconds) % 60) sn kaldı"
+        let total = max(1, Int(seconds))
+        if total < 60 { return String(localized: "\(total) s left") }
+        return String(localized: "\(total / 60) min \(total % 60) s left")
+    }
+
+    static func elapsed(_ seconds: TimeInterval) -> String {
+        String(localized: "\(String(format: "%.1f", seconds)) s")
     }
 
     static func bitrate(_ bps: Double) -> String {
         bps >= 1_000_000 ? String(format: "%.1f Mbps", bps / 1_000_000) : "\(Int(bps / 1000)) kbps"
     }
 
+    /// The language the UI is actually shown in (not just the system region).
+    static let uiLocale = Locale(identifier: Bundle.main.preferredLocalizations.first ?? "en")
+
     static func percent(_ value: Double) -> String {
-        "%\(Int((value * 100).rounded()))"
+        value.formatted(.percent.precision(.fractionLength(0)).locale(uiLocale))
     }
 }

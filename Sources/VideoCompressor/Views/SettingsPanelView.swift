@@ -35,7 +35,7 @@ struct SettingsPanelView: View {
 
     private var presets: some View {
         VStack(alignment: .leading, spacing: 6) {
-            FieldLabel(title: "Hızlı ayar", icon: "bolt.fill")
+            FieldLabel(title: "Presets", icon: "bolt.fill")
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 5) {
                     ForEach(CompressionPreset.all) { preset in
@@ -68,7 +68,7 @@ struct SettingsPanelView: View {
                     ) {
                         compression.wrappedValue.format = format
                     }
-                    .help(format.subtitle + (!format.isNative && !ffmpegAvailable ? " — ffmpeg gerekli" : ""))
+                    .help(format.subtitle + (!format.isNative && !ffmpegAvailable ? " — " + String(localized: "requires ffmpeg") : ""))
                 }
             }
             if !ffmpegAvailable, EngineSelector.requiresFFmpeg(settings.compression) {
@@ -99,9 +99,9 @@ struct SettingsPanelView: View {
     private var sizeModeSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                FieldLabel(title: "Sıkıştırma", icon: "arrow.down.right.and.arrow.up.left")
+                FieldLabel(title: "Compression", icon: "arrow.down.right.and.arrow.up.left")
                 Spacer()
-                Picker("", selection: compression.sizeMode) {
+                Picker(String(), selection: compression.sizeMode) {
                     ForEach(SizeMode.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
@@ -135,12 +135,12 @@ struct SettingsPanelView: View {
                 Slider(value: logTarget, in: log(1)...log(500))
                     .controlSize(.small)
                 HStack(spacing: 2) {
-                    TextField("", value: compression.targetSizeMB, format: .number.precision(.fractionLength(0...1)))
+                    TextField(String(), value: compression.targetSizeMB, format: .number.precision(.fractionLength(0...1)))
                         .textFieldStyle(.plain)
                         .multilineTextAlignment(.trailing)
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
                         .frame(width: 42)
-                    Text("MB").font(.system(size: 11)).foregroundStyle(.secondary)
+                    Text(verbatim: "MB").font(.system(size: 11)).foregroundStyle(.secondary)
                 }
                 .padding(.horizontal, 6).padding(.vertical, 3)
                 .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(0.06)))
@@ -168,7 +168,7 @@ struct SettingsPanelView: View {
 
     private var gifQuality: some View {
         VStack(alignment: .leading, spacing: 6) {
-            FieldLabel(title: "Renk kalitesi", icon: "paintpalette.fill")
+            FieldLabel(title: "Color quality", icon: "paintpalette.fill")
             qualityPills
         }
     }
@@ -184,7 +184,7 @@ struct SettingsPanelView: View {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 8, weight: .bold))
                         .rotationEffect(.degrees(showAdvanced ? 90 : 0))
-                    Text("Çözünürlük, FPS ve ses").font(.system(size: 11, weight: .medium))
+                    Text("Resolution, FPS and audio").font(.system(size: 11, weight: .medium))
                     Spacer()
                     if !showAdvanced {
                         Text(advancedSummary).font(.system(size: 10)).foregroundStyle(.secondary)
@@ -197,19 +197,19 @@ struct SettingsPanelView: View {
             if showAdvanced {
                 HStack(alignment: .top, spacing: 8) {
                     MenuPicker(
-                        label: "Çözünürlük", icon: "rectangle.expand.vertical",
+                        label: "Resolution", icon: "rectangle.expand.vertical",
                         options: ResolutionLimit.allCases, selection: compression.resolution,
                         title: { $0.title }
                     )
                     MenuPicker(
-                        label: "Kare hızı", icon: "speedometer",
+                        label: "Frame rate", icon: "speedometer",
                         options: FrameRateLimit.allCases, selection: compression.frameRate,
                         title: { $0.title }
                     )
                 }
                 if settings.compression.format.hasAudio {
                     Toggle(isOn: compression.removeAudio) {
-                        Label("Sesi kaldır", systemImage: "speaker.slash.fill")
+                        Label("Remove audio", systemImage: "speaker.slash.fill")
                             .font(.system(size: 11.5))
                     }
                     .toggleStyle(.switch)
@@ -222,10 +222,10 @@ struct SettingsPanelView: View {
     private var advancedSummary: String {
         let c = settings.compression
         var parts = [
-            c.resolution == .original ? "Tam çözünürlük" : c.resolution.shortTitle,
-            c.frameRate == .original ? "Kaynak FPS" : c.frameRate.title,
+            c.resolution == .original ? String(localized: "Full resolution") : c.resolution.shortTitle,
+            c.frameRate == .original ? String(localized: "Source FPS") : c.frameRate.title,
         ]
-        if settings.compression.removeAudio && settings.compression.format.hasAudio { parts.append("Sessiz") }
+        if settings.compression.removeAudio && settings.compression.format.hasAudio { parts.append(String(localized: "Muted")) }
         return parts.joined(separator: " · ")
     }
 }
@@ -236,12 +236,14 @@ struct FFmpegHint: View {
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
-            Text("Bu format için ffmpeg gerekli").font(.system(size: 10.5))
+            Text("This format requires ffmpeg").font(.system(size: 10.5))
             Spacer()
-            Button(copied ? "Kopyalandı" : "brew install ffmpeg") {
+            Button {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString("brew install ffmpeg", forType: .string)
                 copied = true
+            } label: {
+                if copied { Text("Copied") } else { Text(verbatim: "brew install ffmpeg") }
             }
             .font(.system(size: 10, design: .monospaced))
             .buttonStyle(.plain)

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PreferencesView: View {
     @Bindable var settings = AppSettings.shared
+    private let updater = UpdateController.shared
 
     var body: some View {
         TabView {
@@ -33,8 +34,33 @@ struct PreferencesView: View {
                 Toggle("Ses çal", isOn: $settings.playSound)
                 Toggle("Dosyayı Finder'da göster", isOn: $settings.revealWhenDone)
             }
+            updates
         }
         .formStyle(.grouped)
+    }
+
+    private var updates: some View {
+        Section("Güncellemeler") {
+            LabeledContent("Sürüm", value: UpdateController.currentVersion)
+            if updater.isAvailable {
+                Toggle("Güncellemeleri otomatik kontrol et", isOn: Binding(
+                    get: { _ = updater.revision; return updater.automaticallyChecks },
+                    set: { updater.automaticallyChecks = $0 }
+                ))
+                HStack {
+                    if let last = updater.lastCheck {
+                        Text("Son kontrol: \(last.formatted(date: .abbreviated, time: .shortened))")
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button("Şimdi kontrol et") { updater.checkForUpdates() }
+                        .disabled(!updater.canCheckForUpdates)
+                }
+            } else {
+                Text("Güncelleme kontrolü yalnızca paketlenmiş uygulamada çalışır.")
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 
     private var output: some View {

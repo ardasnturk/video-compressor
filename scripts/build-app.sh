@@ -1,18 +1,26 @@
 #!/bin/zsh
-# Builds a release "Video Compressor.app" into ./build and optionally installs it.
-#   ./scripts/build-app.sh            → build/Video Compressor.app
-#   ./scripts/build-app.sh --install  → also copies it to /Applications and launches it
+# Builds "build/Video Compressor.app".
+#
+#   ./scripts/build-app.sh             ad-hoc signed, for local use
+#   ./scripts/build-app.sh --install   also copies it to /Applications and launches it
+#
+# Environment:
+#   SIGN_IDENTITY   codesign identity, e.g. "Developer ID Application: Name (TEAMID)".
+#                   Defaults to "-" (ad-hoc). A real identity enables the hardened runtime.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 APP_NAME="Video Compressor"
 BUNDLE_ID="com.jastech.videocompressor"
-VERSION="1.0.0"
+VERSION="$(cat VERSION)"
+FEED_URL="https://github.com/ardasnturk/video-compressor/releases/latest/download/appcast.xml"
+SPARKLE_PUBLIC_KEY="9VyCodJb+Tp3XfejUzSLqOUDA86wqZbzpHcuAo/SBuc="
+SIGN_IDENTITY="${SIGN_IDENTITY:--}"
 APP="build/$APP_NAME.app"
 
-echo "▸ Compiling (release, arm64 + x86_64)…"
+echo "▸ Compiling $VERSION (release, arm64 + x86_64)…"
 swift build -c release --arch arm64 --arch x86_64 >/dev/null
-BIN="$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/VideoCompressor"
+BIN_DIR="$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)"
 
 if [[ ! -f Resources/AppIcon.icns ]]; then
     echo "▸ Rendering icon…"
@@ -25,9 +33,10 @@ fi
 
 echo "▸ Assembling bundle…"
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp "$BIN" "$APP/Contents/MacOS/VideoCompressor"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks"
+cp "$BIN_DIR/VideoCompressor" "$APP/Contents/MacOS/VideoCompressor"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+ditto "$BIN_DIR/Sparkle.framework" "$APP/Contents/Frameworks/Sparkle.framework"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -41,12 +50,17 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>$VERSION</string>
-    <key>CFBundleVersion</key><string>1</string>
+    <key>CFBundleVersion</key><string>$VERSION</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
     <key>LSApplicationCategoryType</key><string>public.app-category.video</string>
     <key>NSHighResolutionCapable</key><true/>
+    <key>NSHumanReadableCopyright</key><string>© 2026 Arda Sentürk. MIT License.</string>
     <key>CFBundleDevelopmentRegion</key><string>tr</string>
+    <key>SUFeedURL</key><string>$FEED_URL</string>
+    <key>SUPublicEDKey</key><string>$SPARKLE_PUBLIC_KEY</string>
+    <key>SUEnableAutomaticChecks</key><true/>
+    <key>SUScheduledCheckInterval</key><integer>86400</integer>
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>
@@ -68,15 +82,27 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-echo "▸ Signing (ad-hoc)…"
-codesign --force --deep --sign - "$APP" >/dev/null 2>&1
+echo "▸ Signing ($([[ "$SIGN_IDENTITY" == "-" ]] && echo ad-hoc || echo "$SIGN_IDENTITY"))…"
+SIGN_FLAGS=(--force --sign "$SIGN_IDENTITY")
+if [[ "$SIGN_IDENTITY" != "-" ]]; then
+    SIGN_FLAGS+=(--options runtime --timestamp)
+fi
+# Inside-out, as Sparkle's documentation describes. --deep is not used on purpose.
+SPARKLE="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
+codesign "${SIGN_FLAGS[@]}" "$SPARKLE/XPCServices/Installer.xpc"
+codesign "${SIGN_FLAGS[@]}" --preserve-metadata=entitlements "$SPARKLE/XPCServices/Downloader.xpc"
+codesign "${SIGN_FLAGS[@]}" "$SPARKLE/Autoupdate"
+codesign "${SIGN_FLAGS[@]}" "$SPARKLE/Updater.app"
+codesign "${SIGN_FLAGS[@]}" "$APP/Contents/Frameworks/Sparkle.framework"
+codesign "${SIGN_FLAGS[@]}" "$APP"
+codesign --verify --strict --deep "$APP"
 
 echo "✓ $APP"
 
 if [[ "${1:-}" == "--install" ]]; then
     pkill -x VideoCompressor 2>/dev/null || true
     rm -rf "/Applications/$APP_NAME.app"
-    cp -R "$APP" /Applications/
+    ditto "$APP" "/Applications/$APP_NAME.app"
     open "/Applications/$APP_NAME.app"
-    echo "✓ /Applications/$APP_NAME.app yüklendi ve açıldı"
+    echo "✓ /Applications/$APP_NAME.app"
 fi

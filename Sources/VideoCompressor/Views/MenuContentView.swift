@@ -58,10 +58,15 @@ struct MenuContentView: View {
             Menu {
                 Button("Ayarlar…") { openSettings() }
                 Button("Çıktı klasörünü aç") { openOutputFolder() }
+                if UpdateController.shared.isAvailable {
+                    Button("Güncellemeleri kontrol et…") { UpdateController.shared.checkForUpdates() }
+                        .disabled(!UpdateController.shared.canCheckForUpdates)
+                }
                 Divider()
                 Button("Tümünü iptal et") { queue.cancelAll() }.disabled(!queue.isBusy)
                 Button("Bitenleri temizle") { queue.clearFinished() }.disabled(!queue.hasFinishedJobs)
                 Divider()
+                Text("Sürüm \(UpdateController.currentVersion)")
                 Button("Video Compressor'dan çık") { NSApp.terminate(nil) }
             } label: {
                 Image(systemName: "ellipsis.circle.fill")

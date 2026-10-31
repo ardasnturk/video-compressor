@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ffmpeg
+        run: brew install ffmpeg
+      - name: Build
+        run: swift build
+      - name: Test
+        run: swift test
+      - name: Bundle (ad-hoc)
+        run: ./scripts/build-app.sh

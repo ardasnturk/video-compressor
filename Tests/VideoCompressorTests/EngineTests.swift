@@ -16,7 +16,7 @@ final class EngineTests: XCTestCase {
         // 8 s, 1080p60, high bitrate, stereo audio
         p.arguments = ["-v", "error", "-f", "lavfi", "-i", "testsrc2=size=1920x1080:rate=60:duration=8",
                        "-f", "lavfi", "-i", "sine=frequency=440:duration=8:sample_rate=48000",
-                       "-ac", "2", "-c:v", "h264_videotoolbox", "-b:v", "30M", "-c:a", "aac", "-b:a", "256k",
+                       "-ac", "2", "-c:v", "libx264", "-preset", "ultrafast", "-b:v", "30M", "-c:a", "aac", "-b:a", "256k",
                        "-y", fixture.path]
         try! p.run(); p.waitUntilExit()
     }

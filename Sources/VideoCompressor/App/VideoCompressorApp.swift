@@ -43,6 +43,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Menu bar only: no Dock icon even when launched via `swift run`.
         NSApp.setActivationPolicy(.accessory)
         JobQueue.requestNotificationPermission()
+        _ = UpdateController.shared
         showDebugWindowIfRequested()
     }
 
